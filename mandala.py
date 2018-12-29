@@ -7,7 +7,7 @@ import itertools
 import sys
 import svgwrite
 
-from stuff import printAt, argmin, PContext, removeSmallStuff, linspace, shapetopaths
+from stuff import printAt, argmin, removeSmallStuff, linspace, shapetopaths
 
 def rotate(shape, angle, origin = (0, 0)):
     return affinity.rotate(shape, angle, origin = origin)
@@ -155,7 +155,7 @@ def generateMandala(nsym, mirror, ntries, distance, ribbon, minsize, colors):
     return result
 
 
-def getMandalaSVG(path, nsym, mirror, seed = None, colorindex = None):
+def getMandalaSVG(nsym, mirror, seed = None, colorindex = None):
     if seed is None:
         seed = random.randrange(sys.maxsize)
     global rng
@@ -179,8 +179,7 @@ def getMandalaSVG(path, nsym, mirror, seed = None, colorindex = None):
 
 if __name__ == '__main__':  
     try:
-        saveMandala("mandala.svg", nsym = 5, mirror = True)
-        # width, height = 700, 700
+        width, height = 700, 700
         # surface = cairo.SVGSurface("mandala.svg", width, height)
         # cr = PContext(surface)
         # cr.scale(height, height)

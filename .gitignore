@@ -2,3 +2,4 @@
 *.svg
 .c9/
 __pycache__/
+.vscode/
