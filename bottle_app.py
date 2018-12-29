@@ -21,8 +21,7 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
     if colorindex is not None:
         colorindex = min(max(colorindex, 0), 29)
     outline = False if outline != 1 else True
-    mandala.saveMandala("mandala.svg", nsym, True, seed, colorindex)
-    return static_file("mandala.svg", "./")
+    return mandala.getMandalaSVG(nsym, True, seed, colorindex)
 
         
 @app.route('/mandala2')
@@ -37,8 +36,7 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
     if colorindex is not None:
         colorindex = min(max(colorindex, 0), 29)
     outline = False if outline != 1 else True
-    mandala.saveMandala("mandala.svg", nsym, False, seed, colorindex)
-    return static_file("mandala.svg", "./")
+    return mandala.getMandalaSVG(nsym, False, seed, colorindex)
 
 
 run(app, host="0.0.0.0", port = 10001, debug = True)

@@ -1,7 +1,8 @@
 import cairo
-from shapely.geometry import Polygon
-from shapely import ops
+from shapely.geometry import Polygon, Point
+from shapely import ops, affinity
 from operator import itemgetter
+import svgwrite
 
 def printAt(x, string):
     if type(string) is not str:
@@ -14,52 +15,6 @@ def argmin(l):
 def linspace(start, stop, num):
     return [start + i * (stop - start) / (num - 1) for i in range(num)]
 
-class PContext(cairo.Context):
-    def drawPolygon(self, polygons, color = None):
-        if polygons.is_empty:
-            return
-        randomColor = color == "random"
-        if randomColor:
-            color = (random.random(), random.random(), random.random())
-        if color is None:
-            color = (0, 0, 0)
-        
-        self.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
-        self.set_source_rgb(*color)
-        
-        if type(polygons) is Polygon:
-            self.move_to(*polygons.exterior.coords[-1])
-            for x, y in polygons.exterior.coords:
-                self.line_to(x, y)
-            for hole in polygons.interiors:
-                self.move_to(*hole.coords[-1])
-                for x, y in hole.coords:
-                    self.line_to(x, y)
-            self.set_source_rgb(*color)
-            self.fill()
-
-        else:
-            for polygon in polygons:
-                if randomColor:
-                    color = (random.random(), random.random(), random.random())
-                    self.set_source_rgb(*color)
-                self.move_to(*polygon.exterior.coords[-1])
-                for x, y in polygon.exterior.coords:
-                    self.line_to(x, y)
-                for hole in polygon.interiors:
-                    self.move_to(*hole.coords[-1])
-                    for x, y in hole.coords:
-                        self.line_to(x, y)
-                self.set_source_rgb(*color)
-                self.fill()
-
-    def drawTransformed(self, polygons, color = None, outline = True, fill = True):
-        polygons = polygons.scale(xfact = 0.5, yfact = 0.5, origin = (0, 0)).translate(xoff = 0.5, yoff = 0.5)
-        if fill:
-            self.drawPolygon(polygons, color)
-        if outline:
-            self.drawPolygon(polygons.boundary.buffer(0.001, 4), color = (0, 0, 0))
-
 def removeSmallStuff(shape, minsize):
     if type(shape) is Polygon:
         if not shape.buffer(-minsize, 4).is_empty:
@@ -70,3 +25,36 @@ def removeSmallStuff(shape, minsize):
         if not component.buffer(-minsize, 4).is_empty:
             keep.append(component)
     return ops.cascaded_union(keep)
+
+def shapetopaths(dwg, shape, fill = "green"):
+    if type(fill) is tuple:
+        fill = "rgb({}, {}, {})".format(int(fill[0] * 256), int(fill[1] * 256), int(fill[2] * 256))
+    if type(shape) is Polygon:
+        svg = shape.svg()
+        commands = svg[svg.find("d=") + 3:-4].split(" ")
+        return [dwg.path(commands, stroke_width = 0.004, stroke = "black", fill = fill)]
+    paths = []
+    for polygon in shape:
+        svg = polygon.svg()
+        commands = svg[svg.find("d=") + 3:-4].split(" ")
+        paths.append(dwg.path(commands, stroke_width = 0.004, stroke = "black", fill = fill))
+    return paths
+
+if __name__ == '__main__':  
+    try:
+        rectangle = Polygon([[1, -1], [1, 1], [-1, 1], [-1, -1]])
+        p = Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])
+        p = p.difference(affinity.scale(p, 0.5, 0.5)).union(Point(-0.5, -0.5).buffer(0.5, 1))
+        
+        dwg = svgwrite.Drawing(viewBox = ("-400 -400 800 800"))
+        for path in shapetopaths(dwg, rectangle, fill = "white"):
+            dwg.add(path)
+        for path in shapetopaths(dwg, p, fill = (1, 0, 1)):
+            dwg.add(path)
+        
+        dwg.saveas("test.svg")
+    except KeyboardInterrupt:
+        print("\nInterrupted")
+        sys.exit(0)
+
+
