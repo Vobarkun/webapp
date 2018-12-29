@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mandala Generator</title>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,500,700,400italic|Material+Icons">
+  <link rel="stylesheet" href="https://unpkg.com/vue-material@beta/dist/vue-material.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/vue-material@beta/dist/theme/default.css">
+  <script src="https://unpkg.com/vue-material@beta"></script>
+</head>
+<body>
+  <div id="app" class="page-container">
+    <md-app>
+      <md-app-toolbar class="md-primary">
+          <span class="md-title">Mandala Generator</span>
+      </md-app-toolbar>
+      <md-app-content>
+        <form novalidate class="md-layout md-gutter md-alignment-center-center ">
+          <md-field class="md-layout-item md-size-25 md-small-size-100">
+            <label>Symmetries</label>
+            <md-input type="number" v-model="nsymform" id="name" v-once/>
+          </md-field>
+          <md-field class="md-layout-item md-size-25 md-small-size-100">
+            <label>Seed</label>
+            <md-input type="number" v-model="seedform" id="name" v-once/>
+          </md-field>
+          <md-field class="md-layout-item md-size-25 md-small-size-100">
+            <label>Color Scheme</label>
+            <md-input type="number" v-model="colorschemeform" id="name" v-once/>
+          </md-field>
+          <div>
+            <md-button onclick="reload()" class="md-icon-button md-raised md-primary">
+              <md-icon>cached</md-icon>
+            </md-button>
+          </div>
+        </form>
+        <md-divider></md-divider>
+        <div class="md-layout md-gutter md-alignment-top-center">
+          <img class="contain" :src="'http://dev.sschultze.de:10001/mandala/' + nsym + '/' + seed + '/' + colorscheme" alt="Vue logo">
+        </div>
+      </md-app-content>
+    </md-app>
+  </div>
+  <script>
+    Vue.use(VueMaterial.default)
+    var app = new Vue({
+      el: '#app',
+      data: {
+        nsym: '8',
+        seed: '0',
+        colorscheme: '0',
+        nsymform: '8',
+        seedform: '0',
+        colorschemeform: '0'
+      },
+      methods: {
+        humanizeURL: function (url) {
+          return url
+            .replace(/^https?:\/\//, '')
+            .replace(/\/$/, '')
+        }
+      }
+    })
+    var reload = function() {
+      app.nsym = app.nsymform
+      app.seed = app.seedform
+      app.colorscheme = app.colorschemeform
+    }
+  </script>
+  <style lang="css" scoped>
+  .md-layout-item {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  form {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 10px;
+  }
+  .contain {
+    max-width: 100%;
+    height: 700px !important;
+  }
+  
+</style>
+</body>
+</html>
