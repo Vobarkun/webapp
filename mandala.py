@@ -169,11 +169,12 @@ def getMandalaSVG(nsym, mirror, seed = None, colorindex = None):
     dwg = svgwrite.Drawing(width = 700, height = 700, viewBox = ("-1 -1 2 2"))
     dwg.add(dwg.rect((-1, -1), (2, 2), fill = "white"))
     
-    mandala = generateMandala(nsym = nsym, mirror = mirror, ntries = 50, distance = 0.4, minsize = 0.011, ribbon = 0.03, colors = colors)
+    mandala = generateMandala(nsym = nsym, mirror = mirror, ntries = 1000, distance = 0.4, minsize = 0.011, ribbon = 0.03, colors = colors)
     for cell, color in mandala:
         for svgpath in shapetopaths(dwg, cell, fill = color):
             dwg.add(svgpath)
 
+    print()
     return dwg.tostring()
     
 
