@@ -18,7 +18,7 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
         nsym = 5
     nsym = min(max(nsym, 2), 16)
     if colorindex is not None:
-        colorindex = min(max(colorindex, 0), 29)
+        colorindex = min(max(colorindex, 0), 99)
     return mandala.getMandalaSVG(nsym, True, seed, colorindex)
 
         
@@ -31,7 +31,7 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
         nsym = 5
     nsym = min(max(nsym, 2), 16)
     if colorindex is not None:
-        colorindex = min(max(colorindex, 0), 29)
+        colorindex = min(max(colorindex, 0), 99)
     return mandala.getMandalaSVG(nsym, False, seed, colorindex)
 
 
