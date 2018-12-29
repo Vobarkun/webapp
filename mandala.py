@@ -39,7 +39,7 @@ def getSkeleton(ntries, distance, bounds, nsym = 1):
 
     nsucesses = 0
     for i in range(ntries):
-        printAt(0, "{}/{}".format(nsucesses, i))
+        printAt(0, "test{}/{}".format(nsucesses, i))
         rng.shuffle(segments)
 
         index = rng.randrange(len(points))
