@@ -3,6 +3,7 @@ from shapely.geometry import Polygon, Point
 from shapely import ops, affinity
 from operator import itemgetter
 import svgwrite
+import re
 
 def printAt(x, string):
     if type(string) is not str:
@@ -26,11 +27,15 @@ def removeSmallStuff(shape, minsize):
             keep.append(component)
     return ops.cascaded_union(keep)
 
+def roundAllNumbersinString(string, precision):
+    dec = re.compile(r"\d*\.\d+")
+    return re.sub(dec, lambda match: str(round(float(match.group()), precision)), svg)
+
 def shapetopaths(dwg, shape, fill = "green"):
     if type(fill) is tuple:
         fill = "rgb({}, {}, {})".format(int(fill[0] * 256), int(fill[1] * 256), int(fill[2] * 256))
     if type(shape) is Polygon:
-        svg = shape.svg()
+        svg = roundAllNumbersinString(shape.svg(), 3)
         commands = svg[svg.find("d=") + 3:-4].split(" ")
         return [dwg.path(commands, stroke_width = 0.004, stroke = "black", fill = fill)]
     paths = []
