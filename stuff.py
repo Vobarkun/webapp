@@ -29,19 +29,19 @@ def removeSmallStuff(shape, minsize):
 
 def roundAllNumbersinString(string, precision):
     dec = re.compile(r"\d*\.\d+")
-    return re.sub(dec, lambda match: str(round(float(match.group()), precision)), svg)
+    return re.sub(dec, lambda match: str(round(float(match.group()), precision)), string)
 
 def shapetopaths(dwg, shape, fill = "green"):
     if type(fill) is tuple:
         fill = "rgb({}, {}, {})".format(int(fill[0] * 256), int(fill[1] * 256), int(fill[2] * 256))
     if type(shape) is Polygon:
-        svg = roundAllNumbersinString(shape.svg(), 3)
-        commands = svg[svg.find("d=") + 3:-4].split(" ")
+        svg = shape.svg()
+        commands = roundAllNumbersinString(svg[svg.find("d=") + 3:-4], 4).split(" ")
         return [dwg.path(commands, stroke_width = 0.004, stroke = "black", fill = fill)]
     paths = []
     for polygon in shape:
         svg = polygon.svg()
-        commands = svg[svg.find("d=") + 3:-4].split(" ")
+        commands = roundAllNumbersinString(svg[svg.find("d=") + 3:-4], 4).split(" ")
         paths.append(dwg.path(commands, stroke_width = 0.004, stroke = "black", fill = fill))
     return paths
 
