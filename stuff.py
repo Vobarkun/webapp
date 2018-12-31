@@ -8,7 +8,10 @@ import re
 def printAt(x, string):
     if type(string) is not str:
         string = str(string)
-    print("\r\033[" + str(x) + "C" + string + "\r", flush = True, end = "")
+    if x == 0:
+        print(string + "\r", flush = True, end = "")
+    else:
+        print("\r\033[" + str(x) + "C" + string + "\r", flush = True, end = "")
 
 def argmin(l):
     return min(enumerate(l), key=itemgetter(1))[0] 

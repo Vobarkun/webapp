@@ -1,29 +1,54 @@
 from bottle import route, run, Bottle, response
 import sentence
 import mandala
-from queue import Queue
+import queue
 import threading
 import time
+from stuff import printAt
 
 app = Bottle()
 
-queue = Queue(10)
+queueM = queue.Queue(20)
+queueR = queue.Queue(10)
 
 def fillQueue():
     while True:
         time.sleep(1)
-        if not queue.full():
-            print("filling queue")
-            queue.put(mandala.getMandalaSVG(5, True))
+        for _ in range(2):
+            if not queueM.full():
+                printAt(0, "M" + str(queueM.qsize() + 1))
+                queueM.put(mandala.getMandalaSVG(5, True))
+        if not queueR.full():
+            printAt(0, "R" + str(queueR.qsize() + 1))
+            queueR.put(mandala.getMandalaSVG(5, False))
 
 queueFiller = threading.Thread(name = "Queue Filler", target = fillQueue)
 queueFiller.setDaemon(True)
 queueFiller.start()
 
+lastM = ""
 @app.route('/mandala')
-def mandalafromQueue():
+def mandalafromQueueM():
     response.set_header('Content-Type', 'image/svg+xml')
-    return '<?xml version="1.0" encoding="utf-8" ?>\n' + queue.get(block = True)
+    global lastM
+    try:
+        svg = queueM.get(block = False)
+        lastM = svg
+    except queue.Empty:
+        svg = lastM
+    return svg
+    
+lastR = ""
+@app.route('/mandalar')
+def mandalafromQueueR():
+    response.set_header('Content-Type', 'image/svg+xml')
+    global lastR
+    try:
+        svg = queueR.get(block = False)
+        lastR = svg
+    except queue.Empty:
+        svg = lastR
+    return svg
 
 @app.route('/mandala/<nsym:int>')
 @app.route('/mandala/<nsym:int>/<seed>')
@@ -32,19 +57,16 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
     if nsym is None:
         nsym = 5
     nsym = min(max(nsym, 1), 16)
-    if colorindex is not None:
-        colorindex = min(max(colorindex, 0), 99)
     if seed == "r":
         seed = None
     response.set_header('Content-Type', 'image/svg+xml')
     return '<?xml version="1.0" encoding="utf-8" ?>\n' + mandala.getMandalaSVG(nsym, True, seed, colorindex)
 
-        
-@app.route('/mandalar')
+
 @app.route('/mandalar/<nsym:int>')
 @app.route('/mandalar/<nsym:int>/<seed:int>')
 @app.route('/mandalar/<nsym:int>/<seed:int>/<colorindex:int>')
-def bla(nsym = None, seed = None, colorindex = None, outline = 0):
+def blaR(nsym = None, seed = None, colorindex = None, outline = 0):
     if nsym is None:
         nsym = 5
     nsym = min(max(nsym, 1), 16)
