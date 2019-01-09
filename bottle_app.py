@@ -64,14 +64,14 @@ def bla(nsym = None, seed = None, colorindex = None, outline = 0):
 
 
 @app.route('/mandalar/<nsym:int>')
-@app.route('/mandalar/<nsym:int>/<seed:int>')
-@app.route('/mandalar/<nsym:int>/<seed:int>/<colorindex:int>')
+@app.route('/mandalar/<nsym:int>/<seed>')
+@app.route('/mandalar/<nsym:int>/<seed>/<colorindex:int>')
 def blaR(nsym = None, seed = None, colorindex = None, outline = 0):
     if nsym is None:
         nsym = 5
     nsym = min(max(nsym, 1), 16)
-    if colorindex is not None:
-        colorindex = min(max(colorindex, 0), 99)
+    if seed == "r":
+        seed = None
     response.set_header('Content-Type', 'image/svg+xml')
     return '<?xml version="1.0" encoding="utf-8" ?>\n' +  mandala.getMandalaSVG(nsym, False, seed, colorindex)
 

@@ -30,7 +30,10 @@ def mandalify(shape, nsym, mirror = False, keepOriginal = True):
     return ops.cascaded_union([shape.rotate(i * 360 / nsym) for i in range(1, nsym)]).union(original.scale(1, -1))
 geometry.base.BaseGeometry.mandalify = mandalify
 
-def getSkeleton(ntries, distance, bounds, nsym = 1):
+def getSkeleton(ntries, distance, bounds, nsym = 1, rng = None):
+    if rng is None:
+        rng = random.Random()
+        
     points = [Point(0.5, 0)] if nsym != 1 else [bounds.centroid]
     skeleton = ops.cascaded_union(points)
     openends = [(x, x) for x in points]
@@ -43,17 +46,17 @@ def getSkeleton(ntries, distance, bounds, nsym = 1):
     for i in range(ntries):
         printAt(4, "{}/{}".format(nsucesses, i))
         printAt(12, str(len(points)) + " ")
-        random.shuffle(segments)
+        rng.shuffle(segments)
 
-        index = random.randrange(len(points))
+        index = rng.randrange(len(points))
         start = points[index]
 
         fact = 20
         nangles = 10
-        angles = [360 / nangles * x + random.uniform(0, 360 / nangles) for x in range(nangles)]
-        random.shuffle(angles)
+        angles = [360 / nangles * x + rng.uniform(0, 360 / nangles) for x in range(nangles)]
+        rng.shuffle(angles)
         lengths = linspace(distance, distance / fact, 5)
-        lengths = [l + random.uniform(0, distance / fact / 2) for l in lengths]
+        lengths = [l + rng.uniform(0, (distance - distance / fact) / 5) for l in lengths]
         
         for angle, segment, length in itertools.product(angles, segments, lengths):
             end = Point(length, 0).rotate(angle).translate(start.x, start.y)
@@ -118,7 +121,9 @@ def getCells(outline, bounds, nsym = 1):
             break
     return cells
 
-def generateMandala(nsym, mirror, ntries, distance, ribbon, minsize, colors): 
+def generateMandala(nsym, mirror, ntries, distance, ribbon, minsize, colors, rng = None):
+    if rng is None:
+        rng = random.Random()
     disc = Point(0, 0).buffer(0.95, 100)
     angle = math.pi / nsym
     wedge = Polygon([(0, 0), (2, 0), (2 * math.cos(angle), 2 * math.sin(angle), 0)]).intersection(disc)
@@ -126,14 +131,14 @@ def generateMandala(nsym, mirror, ntries, distance, ribbon, minsize, colors):
     bounds = wedge if mirror else disc
     notnsym = 1 if mirror else nsym
 
-    skeleton, openends = getSkeleton(ntries, distance, bounds, notnsym)
+    skeleton, openends = getSkeleton(ntries, distance, bounds, nsym = notnsym, rng = rng)
     outline = extendOpenEnds(skeleton, openends, bounds, notnsym)
     cells = getCells(outline, bounds, notnsym)    
     cells = [cell for cell in cells if cell.distance(disc.boundary) > 0.0002 or cell.intersects(Point(0, 0).buffer(0.3))]
     
     byColor = [Point(0, 0).difference(Point(0, 0)) for color in colors]
     for cell in cells:
-        index = random.randrange(len(colors))
+        index = rng.randrange(len(colors))
         byColor[index] = byColor[index].union(cell)
     byColor = [shape.buffer(0.001, 4).buffer(-0.001, 4).simplify(0.0001) for shape in byColor]
     
@@ -145,7 +150,7 @@ def generateMandala(nsym, mirror, ntries, distance, ribbon, minsize, colors):
             
             otherColors = copy.copy(colors)
             otherColors.remove(color)
-            random.shuffle(otherColors)
+            rng.shuffle(otherColors)
             for i in range(1, 100):
                 msbuffer = mshape.buffer(-ribbon * i).simplify(0.0001)
                 bigStuff = removeSmallStuff(msbuffer, minsize)
@@ -167,13 +172,13 @@ def getMandalaSVG(nsym, mirror, seed = None, colorindex = None):
     
     if seed is None:
         seed = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    random.seed(seed)
+    rng = random.Random(seed)
     printAt(16, seed)
     
-    dwg = svgwrite.Drawing(title = "Mandala {}/{}/{}".format(nsym, seed, colorindex), width = 700, height = 700, viewBox = ("-1 -1 2 2"), debug = False)
+    dwg = svgwrite.Drawing(title = "Mandala {}/{}/{}".format(nsym, seed, colorindex), width = 700, height = 700, viewBox = ("-1 -1 2 2"), preserveAspectRatio="xMidYMin", debug = False)
     dwg.add(dwg.rect((-1, -1), (2, 2), fill = "white"))
     
-    mandala = generateMandala(nsym = nsym, mirror = mirror, ntries = 200, distance = 0.4, minsize = 0.011, ribbon = 0.03, colors = colors)
+    mandala = generateMandala(nsym = nsym, mirror = mirror, ntries = 200, distance = 0.4, minsize = 0.011, ribbon = 0.03, colors = colors, rng = rng)
     for cell, color in mandala:
         for svgpath in shapetopaths(dwg, cell, fill = color):
             dwg.add(svgpath)
